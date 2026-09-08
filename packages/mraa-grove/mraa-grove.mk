@@ -4,8 +4,9 @@
 #
 ################################################################################
 
-MRAA_GROVE_VERSION = d055b45b7e0744de60855f35007999dded684945
-MRAA_GROVE_SITE = $(call github,eclipse,mraa,$(MRAA_GROVE_VERSION))
+MRAA_GROVE_VERSION = fcbd1fc13b32a382aa3c371d1ba847fd3b7bc5d8
+MRAA_GROVE_SITE = https://github.com/eclipse-mraa/mraa.git
+MRAA_GROVE_SITE_METHOD = git
 MRAA_GROVE_LICENSE = MIT
 MRAA_GROVE_LICENSE_FILES = COPYING
 MRAA_GROVE_INSTALL_STAGING = YES
@@ -27,6 +28,7 @@ endif
 # which doesn't exist in buildroot
 # Disable C++ as it is used only by FTDI4222 and tests
 MRAA_GROVE_CONF_OPTS += \
+	-DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
 	-DBUILDARCH=$(MRAA_GROVE_ARCH) \
 	-DBUILDCPP=OFF \
 	-DUSBPLAT=OFF \
