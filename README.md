@@ -78,26 +78,37 @@ zImage
 
 ### How to use the system ###
 #### eMMC boot ####
-Remove the middle boot jumper to be sure DFU mode is active. Connect an
-usb to serial console cable, and apply power
-to your board over usb-c. Make sure to open the serial console using 
-minicom or another similar program, you
-will need it.
+Remove the middle boot jumper to be sure STM32 ROM DFU mode is active.
+Connect a usb to serial console cable, and apply power to your board over
+usb-c. Make sure to open the serial console using minicom or another
+similar program, you will need it.
 
 Then, execute the following command from the snagboot package and be
 prepared to interrupt the boot sequence when reaching u-boot, by
 pressing any key in the serial console window:
 ```
 cd output/images
-snagrecover -s stm32mp13 -f ../../board/stm32mp135d-odyssey/utilities/stm32mp1-stm32mp135d-odyssey.yaml
+snagrecover -s stm32mp13 -f ../../../buildroot-stm32mp135d-odyssey/board/stm32mp135d-odyssey/utilities/stm32mp1-stm32mp135d-odyssey.yaml
+```
+U-Boot now waits 5 seconds before autobooting, so the prompt is easier to
+catch in gtkterm.
+
+Once at the u-boot prompt, type the following to enable the eMMC boot
+partition: ```mmc partconf 1 1 1 1```. This enables the first eMMC boot
+partition and ensures it is possible to boot from it, by modifying ext
+csd register 179.
+
+Then type ```dfu 0``` in U-Boot to expose the U-Boot DFU alternate
+settings to your host machine, including the eMMC boot regions. This is
+separate from STM32 ROM DFU. If you run ```dfu-util -l``` too early, you
+will only see the ROM DFU entries, for example:
+```
+Found DFU: [0483:df11] ver=0200, devnum=5, cfg=1, intf=0, path="1-5", alt=1, name="@virtual /0xF1/1*512Ba", serial="0005002E3232510937393835"
+Found DFU: [0483:df11] ver=0200, devnum=5, cfg=1, intf=0, path="1-5", alt=0, name="@FSBL /0x01/1*128Ke", serial="0005002E3232510937393835"
 ```
 
-Once at the u-boot prompt, type the following to enable the eMMC boot 
-partition: ```mmc partconf 1 1 1 1```. This enables the first eMMC boot 
-partition and ensure it is possible to boot from it, by modifying ext 
-csd register 179. Then, type ```dfu 0``` to expose all the DFU alt 
-settings to your host machine, including the eMMC boot regions. They can 
-be listed using the dfu-util command:
+After ```dfu 0```, the eMMC boot regions should appear as alt settings.
+They can be listed using the dfu-util command:
 ```
 dfu-util -l
 Found DFU: [0483:df11] ver=0200, devnum=7, cfg=1, intf=0, path="3-3", alt=4, name="mmc1_boot2", serial="0021001A3232510937393835"
@@ -105,8 +116,9 @@ Found DFU: [0483:df11] ver=0200, devnum=7, cfg=1, intf=0, path="3-3", alt=3, nam
 ...
 ```
 
-Then, use the snagflash tool to write the combined bootloader image into 
-both boot regions:
+Then, use the snagflash tool to write the combined bootloader image into
+both boot regions. These commands require the U-Boot DFU alt settings
+above, especially alt 3 and 4:
 ```
 snagflash -P dfu -p 0483:df11 --dfu-keep -D 3:combined-tf-a-and-fip.img
 snagflash -P dfu -p 0483:df11 -D 4:combined-tf-a-and-fip.img
@@ -173,8 +185,10 @@ prepared to interrupt the boot sequence when reaching u-boot, by
 pressing any key in the serial console window:
 ```
 cd output/images
-snagrecover -s stm32mp13 -f ../../board/stm32mp135d-odyssey/utilities/stm32mp1-stm32mp135d-odyssey.yaml
+snagrecover -s stm32mp13 -f ../../../buildroot-stm32mp135d-odyssey/board/stm32mp135d-odyssey/utilities/stm32mp1-stm32mp135d-odyssey.yaml
 ```
+U-Boot now waits 5 seconds before autobooting, so the prompt is easier to
+catch in gtkterm.
 
 Once you're at the u-boot prompt, you can boot over nfs by doing the 
 following:

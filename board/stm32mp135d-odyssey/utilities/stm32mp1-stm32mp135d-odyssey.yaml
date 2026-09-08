@@ -1,4 +1,5 @@
 tf-a:
-  path: ./tf-a-stm32mp135d-odyssey.stm32
+    path: /home/gudjon/nb/b/buildroot/output/images/tf-a-stm32mp135d-odyssey.stm32
 fip:
-  path: ./fip.bin
+    path: /home/gudjon/nb/b/buildroot/output/images/fip.bin
+
