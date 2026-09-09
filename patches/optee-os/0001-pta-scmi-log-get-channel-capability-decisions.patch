@@ -1,0 +1,58 @@
+--- a/core/pta/scmi.c
++++ b/core/pta/scmi.c
+@@ -285,9 +285,22 @@
+ 						    TEE_PARAM_TYPE_NONE);
+ 	unsigned int channel_id = params[0].value.a;
+ 	unsigned int caps = params[0].value.b;
++	unsigned int handle = 0;
+ 
+-	if (ptypes != exp_ptypes || !valid_caps(caps))
++	FMSG("SCMI get_channel: channel=%u caps=%#x drivers=%d smt=%d shm_msg=%d",
++	     channel_id, caps, IS_ENABLED(CFG_SCMI_MSG_DRIVERS),
++	     IS_ENABLED(CFG_SCMI_MSG_SMT), IS_ENABLED(CFG_SCMI_MSG_SHM_MSG));
++
++	if (ptypes != exp_ptypes) {
++		FMSG("SCMI get_channel rejected: bad ptypes %#"PRIx32" expected %#"PRIx32,
++		     ptypes, exp_ptypes);
+ 		return TEE_ERROR_BAD_PARAMETERS;
++	}
++
++	if (!valid_caps(caps)) {
++		FMSG("SCMI get_channel rejected: invalid caps %#x", caps);
++		return TEE_ERROR_BAD_PARAMETERS;
++	}
+ 
+ 	if (IS_ENABLED(CFG_SCMI_MSG_DRIVERS)) {
+ 		struct scmi_msg_channel *channel = NULL;
+@@ -295,19 +308,28 @@
+ 		if ((!IS_ENABLED(CFG_SCMI_MSG_SMT) &&
+ 		     caps & PTA_SCMI_CAPS_SMT_HEADER) ||
+ 		    (!IS_ENABLED(CFG_SCMI_MSG_SHM_MSG) &&
+-		     caps & PTA_SCMI_CAPS_MSG_HEADER))
++		     caps & PTA_SCMI_CAPS_MSG_HEADER)) {
++			FMSG("SCMI get_channel rejected: unsupported caps %#x",
++			     caps);
+ 			return TEE_ERROR_NOT_SUPPORTED;
++		}
+ 
+ 		channel = plat_scmi_get_channel(channel_id);
+-		if (!channel)
++		if (!channel) {
++			FMSG("SCMI get_channel rejected: no channel %u", channel_id);
+ 			return TEE_ERROR_BAD_PARAMETERS;
++		}
+ 
+ 		channel->threaded = true;
+-		params[0].value.a = scmi_smt_channel_handle(channel_id);
++		handle = scmi_smt_channel_handle(channel_id);
++		FMSG("SCMI get_channel accepted: channel=%u handle=%u", channel_id,
++		     handle);
++		params[0].value.a = handle;
+ 
+ 		return TEE_SUCCESS;
+ 	}
+ 
++	FMSG("SCMI get_channel rejected: CFG_SCMI_MSG_DRIVERS disabled");
+ 	return TEE_ERROR_NOT_SUPPORTED;
+ }
+ 
