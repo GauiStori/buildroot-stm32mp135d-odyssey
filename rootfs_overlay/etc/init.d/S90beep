@@ -9,8 +9,13 @@ duty = 0.01
 duration = 0.5
 pwm_pin = "PWM0"
 
-pin = mraa.getPwmLookup(pwm_pin)
-pwm = mraa.Pwm(pin)
+try:
+    pin = mraa.getPwmLookup(pwm_pin)
+    pwm = mraa.Pwm(pin)
+except ValueError:
+    # PWM0 is TIM5 channel 4 on the Odyssey (Linux PWM chip 4, channel 3).
+    pwm = mraa.Pwm(3, True, 4)
+
 pwm.enable(True)
 pwm.period_us(period)
 pwm.write(duty)
