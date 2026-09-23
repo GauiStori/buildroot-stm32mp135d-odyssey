@@ -1,3 +1,6 @@
+**Notice** This repository is cloned from Xogium. For the original instructions
+see [here] (https://wiki.seeedstudio.com/ODYSSEY-STM32MP135D/)
+
 # External buildroot tree for STM32MP135D ODYSSEY #
 This external tree is to be used in conjunction with upstream buildroot, 
 version 2023.02 or later. Previous versions might work, but are not supported, 
@@ -29,6 +32,25 @@ along with a single rootfs.
 
 ## How to build ##
 ### Preparations ###
+
+Tools needed on Debian 
+
+apt install dfu-util gtkterm python3-venv
+
+Create virtual environment. All snagtools must be run inside venv.
+```
+python3 -m venv .venv
+source .venv/bin/activate
+pip install snagboot
+```
+
+As root create /etc/udev/rules.d/50-stm32-dfu.rules
+containing
+```
+SUBSYSTEM=="usb", ATTR{idVendor}=="0483", ATTR{idProduct}=="df11", GROUP="plugdev", MODE="0660"
+```
+and check that you are in group plugdev
+
 First, you must ensure all the buildroot dependencies are met. Please 
 refer to [The buildroot user manual, chapter 2: System 
 requirements](https://buildroot.org/downloads/manual/manual.html#requirement). 
@@ -39,10 +61,12 @@ snagboot is out of scope of this guide.
 
 Then, setup the required source code, as follows:
 ```
-wget https://buildroot.org/downloads/buildroot-2023.02.5.tar.gz
-tar -xf buildroot-2023.02.5.tar.gz
-mv buildroot-2023.02.5 buildroot
-git clone https://github.com/xogium/buildroot-stm32mp135d-odyssey
+wget https://buildroot.org/downloads/buildroot-2026.08.tar.gz
+tar -xf https://buildroot.org/downloads/buildroot-2026.08.tar.gz
+mv buildroot-2026.08 buildroot
+git clone https://github.com/GauiStori/buildroot-stm32mp135d-odyssey.git
+cd buildroot-stm32mp135d-odyssey
+git switch odyssey-2023-10
 ```
 
 ### Building ###
@@ -87,8 +111,8 @@ Then, execute the following command from the snagboot package and be
 prepared to interrupt the boot sequence when reaching u-boot, by
 pressing any key in the serial console window:
 ```
-cd output/images
-snagrecover -s stm32mp13 -f ../../../buildroot-stm32mp135d-odyssey/board/stm32mp135d-odyssey/utilities/stm32mp1-stm32mp135d-odyssey.yaml
+cd buildroot
+snagrecover -s stm32mp13 -f ../buildroot-stm32mp135d-odyssey/board/stm32mp135d-odyssey/utilities/stm32mp1-stm32mp135d-odyssey.yaml
 ```
 U-Boot now waits 5 seconds before autobooting, so the prompt is easier to
 catch in gtkterm.
@@ -184,8 +208,8 @@ Then, execute the following command from the snagboot package and be
 prepared to interrupt the boot sequence when reaching u-boot, by 
 pressing any key in the serial console window:
 ```
-cd output/images
-snagrecover -s stm32mp13 -f ../../../buildroot-stm32mp135d-odyssey/board/stm32mp135d-odyssey/utilities/stm32mp1-stm32mp135d-odyssey.yaml
+cd buildroot
+snagrecover -s stm32mp13 -f ../buildroot-stm32mp135d-odyssey/board/stm32mp135d-odyssey/utilities/stm32mp1-stm32mp135d-odyssey.yaml
 ```
 U-Boot now waits 5 seconds before autobooting, so the prompt is easier to
 catch in gtkterm.
@@ -313,3 +337,11 @@ That said, here are some helpful tips to get you started:
 
 If you have questions about this tree or find bugs, please open an issue in the
 GitHub repository.
+
+### Remove u-boot
+
+If you want to destroy u-boot to get a clean device:
+
+mmc dev 1 1
+mmc info
+mmc erase 0 0x1000
