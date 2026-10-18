@@ -1,0 +1,21 @@
+--- a/drivers/firmware/arm_scmi/optee.c
++++ b/drivers/firmware/arm_scmi/optee.c
+@@ -782,10 +782,14 @@
+ static int setup_shmem(struct device *dev, struct scmi_chan_info *cinfo,
+ 		       struct scmi_optee_channel *channel)
+ {
+-	if (of_find_property(cinfo->dev->of_node, "shmem", NULL))
+-		return setup_static_shmem(dev, cinfo, channel);
+-	else
+-		return setup_dynamic_shmem(dev, channel);
++	/*
++	 * The STM32MP13 OP-TEE platform config used by this BSP forces the SCMI
++	 * PTA to MSG transport only. Use OP-TEE dynamic SHM so GET_CHANNEL asks
++	 * for PTA_SCMI_CAPS_MSG_HEADER instead of unsupported SMT.
++	 */
++	dev_info(dev, "Using OP-TEE dynamic SHM for SCMI channel\n");
++
++	return setup_dynamic_shmem(dev, channel);
+ }
+ 
+ static int scmi_optee_chan_setup(struct scmi_chan_info *cinfo, struct device *dev, bool tx)
