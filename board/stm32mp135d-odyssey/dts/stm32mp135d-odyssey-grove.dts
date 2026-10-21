@@ -24,6 +24,25 @@
 	status = "okay";
 };
 
+&usbotg_hs {
+	 *
+	 * Upstream leaves the USB-C connector endpoint commented out, so the
+	 * OTG_ID pin (biased low) decides the role and defaults to host.
+	 * This port is only ever used as a fixed USB Ethernet gadget here,
+	 * so force peripheral mode instead of relying on role detection.
+	 *
+	 * usb-role-switch (inherited from stm32mp135d-odyssey.dts) is still
+	 * set, so dwc2 still registers a role switch and waits for
+	 * role-switch-default-mode to know what to do with USB_ROLE_NONE
+	 * (no connector ever drives a real role). Without it, dwc2_ovr_init()
+	 * never sets GOTGCTL B-session-valid, and the UDC state stays
+	 * "not attached" forever even though it is correctly forced into
+	 * device mode.
+	 *
+	dr_mode = "peripheral";
+	role-switch-default-mode = "peripheral";
+};
+
 &timers3 {
 	/delete-property/dmas;
 	/delete-property/dma-names;
