@@ -25,7 +25,7 @@
 };
 
 &usbotg_hs {
-	 *
+	 /*
 	 * Upstream leaves the USB-C connector endpoint commented out, so the
 	 * OTG_ID pin (biased low) decides the role and defaults to host.
 	 * This port is only ever used as a fixed USB Ethernet gadget here,
@@ -38,7 +38,7 @@
 	 * never sets GOTGCTL B-session-valid, and the UDC state stays
 	 * "not attached" forever even though it is correctly forced into
 	 * device mode.
-	 *
+	 */
 	dr_mode = "peripheral";
 	role-switch-default-mode = "peripheral";
 };
